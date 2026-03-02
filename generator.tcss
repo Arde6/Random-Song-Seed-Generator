@@ -1,0 +1,52 @@
+/* ── Global ── */
+Screen {
+    background: #0a0a0f;
+    layers: base overlay;
+}
+
+Header {
+    background: #0a0a0f;
+    color: #e8e0d0;
+    text-style: bold;
+    border-bottom: tall #1a1a2e;
+}
+
+Footer {
+    background: #0d0d18;
+    color: #4a4a6a;
+    border-top: tall #1a1a2e;
+}
+
+/* ── Log area ── */
+InstructionDisplay {
+    height: 1fr;
+    padding: 0 1;
+}
+
+RichLog {
+    background: #0a0a0f;
+    color: #c8bfa8;
+    border: none;
+    scrollbar-color: #2a2a3e;
+    scrollbar-color-hover: #4a4a6e;
+    padding: 1 2;
+}
+
+/* ── Input ── */
+Input {
+    background: #0d0d18;
+    border: tall #2a2a4e;
+    color: #e8e0d0;
+    padding: 0 2;
+    height: 3;
+    margin: 0 1 1 1;
+}
+
+Input:focus {
+    border: tall #7a6fff;
+    background: #0f0f20;
+}
+
+Input.-valid {
+    border: tall #7a6fff;
+}
