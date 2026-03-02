@@ -1,1 +1,3 @@
 textual
+groq
+python-dotenv

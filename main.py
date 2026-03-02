@@ -1,10 +1,22 @@
 # Imports
 import random
+import os
+
 from textual.app import App, ComposeResult
 from textual.containers import HorizontalGroup, VerticalScroll
 from textual.widgets import Footer, Header, RichLog, Input
 from rich.text import Text
 from rich.style import Style
+
+from dotenv import load_dotenv
+from groq import Groq
+
+# --- dotenv and grok ---
+load_dotenv()
+
+api_key = os.getenv("GROQ_API_KEY")
+
+client = Groq(api_key=api_key)
 
 # --- Lists ---
 
@@ -64,6 +76,14 @@ def hint(log):
     t.append(" manual   ", style=Style(color=C_MUTED))
     log.write(t)
 
+def ai_hint(log):
+    t = Text()
+    t.append("  ?", style=Style(color=C_ACCENT, bold=True))
+    t.append(" AI one liner   ", style=Style(color=C_MUTED))
+    t.append("r", style=Style(color=C_ACCENT, bold=True))
+    t.append(" reset   ", style=Style(color=C_MUTED))
+    log.write(t)
+
 def write_welcome(log):
     log.write(Text(""))
     t = Text()
@@ -82,6 +102,28 @@ def write_result(log, key, scale_name, chords, mood):
     t.append("  ".join(f"{c:<2}" for c in chords) + "\n", style=Style(color=C_GREEN, bold=True))
     t.append("  MOOD   ", style=Style(color=C_MUTED))
     t.append(mood, style=Style(color=C_ACCENT, italic=True))
+    log.write(t)
+    divider(log)
+
+def get_maestro_vibe(log, key, scale, mood_desc):
+    completion = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "system", 
+                "content": "You are a witty music production assistant."
+            },
+            {
+                "role": "user", 
+                "content": f"Give me a 1-sentence evocative image for a {mood_desc} song in {key} {scale}."
+            }
+        ],
+        max_tokens=50
+    )
+    # return completion.choices[0].message.content
+    t = Text()
+    t.append("  ")
+    t.append(completion.choices[0].message.content)
     log.write(t)
     divider(log)
 
@@ -104,8 +146,7 @@ def random_everything(log):
     mood = random.choice(moods[scale_name])
     write_result(log, key, scale_name, generate_chord_progression(key, scale_name), mood)
 
-def chosen(log, key, scale_name):
-    mood = random.choice(moods[scale_name])
+def chosen(log, key, scale_name, mood):
     write_result(log, key, scale_name, generate_chord_progression(key, scale_name), mood)
 
 # --- App ---
@@ -125,6 +166,7 @@ class GeneratorApp(App):
     mode = None
     key = None
     scale_name = None
+    mood = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -190,7 +232,22 @@ class GeneratorApp(App):
         elif self.mode == "scale":
             if choice in scales:
                 self.scale_name = choice
-                chosen(log, self.key, self.scale_name)
+                self.mood = random.choice(moods[self.scale_name])
+                chosen(log, self.key, self.scale_name, self.mood)
+                self.mode = "ai"
+                ai_hint(log)
+                # self.mode = None
+                # hint(log)
+            else:
+                log.write(Text("  x  Invalid scale.", style=Style(color=C_RED)))
+        
+        elif self.mode == "ai":
+            if choice == "?":
+                get_maestro_vibe(log, self.key, self.scale_name, self.mood)
+                self.mode = None
+                hint(log)
+            elif choice == "r":
+                divider(log)
                 self.mode = None
                 hint(log)
             else:
