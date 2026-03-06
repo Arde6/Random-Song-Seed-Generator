@@ -1,3 +1,4 @@
-textual
-groq
-python-dotenv
+groq==1.0.0
+python-dotenv==1.2.2
+rich==14.3.3
+textual==8.0.2
